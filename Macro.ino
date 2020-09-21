@@ -2,10 +2,19 @@
 
 //uint8_t inputPins[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 14, 15};
 uint8_t inputPins[] = {8, 9, 10, 16};
-uint8_t keys[4][3] = {{KEY_LEFT_CTRL, KEY_LEFT_ARROW}, 
-                      {KEY_LEFT_CTRL, KEY_RIGHT_ARROW},
-                      {0, 0, 0},
-                      {0 ,0 ,0}};
+uint8_t clickKeys[4][3] = {
+  {KEY_LEFT_CTRL, KEY_LEFT_ARROW}, 
+  {KEY_LEFT_CTRL, KEY_RIGHT_ARROW},
+  {KEY_LEFT_CTRL, KEY_RIGHT_GUI, 'q'},
+  {KEY_RIGHT_GUI ,KEY_LEFT_SHIFT, 't'}
+};
+
+uint8_t longPressKeys[4][3] = {
+  {}, 
+  {},
+  {},
+  {}
+};
 
 int arrSize = sizeof(inputPins) / sizeof(inputPins[0]);
 void handleEvent(AceButton*, uint8_t, uint8_t);
@@ -14,9 +23,6 @@ Key *buttons;
 String incomingByte;
 
 void setup() {
-  Serial.begin(115200);
-  while(!Serial) {}
-  
   Keyboard.begin();
   
   arrSize = sizeof(inputPins) / sizeof(inputPins[0]);
@@ -27,23 +33,36 @@ void setup() {
     ButtonConfig* buttonConfig = buttons[i].setup(inputPins[i]);
     buttonConfig -> setEventHandler(handleEvent);
   }
-  
-  for (int i = 0; i < arrSize; i++) {  
-    int keySize = 3;
 
-    Vector<uint8_t> keyboardKeys;
-    uint8_t tempArr[5];
+  LinkedList<uint8_t> keyboardKeys = LinkedList<uint8_t>();
+  for (int i = 0; i < arrSize; i++) {  
+
+    // Setting click keys
+    int clickKeySize = sizeof(clickKeys[i]) / sizeof(clickKeys[i][0]);
     
-    keyboardKeys.setStorage(tempArr);
+    for (int j = 0; j < clickKeySize; j++) {
+      if (clickKeys[i][j] > 0) {
+        keyboardKeys.add(clickKeys[i][j]);
+      }
+    }
+    if (keyboardKeys.size() > 0) {
+      buttons[i].setClickKeys(keyboardKeys);
+    }
+
+    keyboardKeys.clear();
+
+    // Setting long click keys    
+    int longPressKeySize = sizeof(longPressKeys[i]) / sizeof(longPressKeys[i][0]);
     
-    for (int j = 0; j < keySize; j++) {
-      if (keys[i][j] > 0) {
-        keyboardKeys.push_back(keys[i][j]);
+    for (int j = 0; j < longPressKeySize; j++) {
+      if (longPressKeys[i][j] > 0) {
+        keyboardKeys.add(longPressKeys[i][j]);
       }
     }
     if (keyboardKeys.size() > 0) {
       buttons[i].setLongPressKeys(keyboardKeys);
     }
+
     keyboardKeys.clear();
   }
 }
