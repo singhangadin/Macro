@@ -14,8 +14,8 @@ class Key: public IEventHandler {
 
   public:
     Key() {
-      clickKeys = LinkedList<uint8_t>();
-      longPressKeys = LinkedList<uint8_t>();
+      clickKeys = KeyCodes();
+      longPressKeys = KeyCodes();
     }
     
     const char asciiMap[47] = {
