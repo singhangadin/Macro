@@ -2,18 +2,19 @@
 
 //uint8_t inputPins[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 14, 15};
 uint8_t inputPins[] = {8, 9, 10, 16};
-uint8_t clickKeys[4][3] = {
+
+int clickKeys[4][3] = {
+  {'c', 'i', '{'}, 
+  {'c', 'i', '\"'},
+  {'c', 'i', '('},
+  {'d', 'd'}
+};
+
+int longPressKeys[4][3] = {
   {KEY_LEFT_CTRL, KEY_LEFT_ARROW}, 
   {KEY_LEFT_CTRL, KEY_RIGHT_ARROW},
   {KEY_LEFT_CTRL, KEY_RIGHT_GUI, 'q'},
   {KEY_RIGHT_GUI ,KEY_LEFT_SHIFT, 't'}
-};
-
-uint8_t longPressKeys[4][3] = {
-  {}, 
-  {},
-  {},
-  {}
 };
 
 int arrSize = sizeof(inputPins) / sizeof(inputPins[0]);
@@ -34,7 +35,7 @@ void setup() {
     buttonConfig -> setEventHandler(handleEvent);
   }
 
-  LinkedList<uint8_t> keyboardKeys = LinkedList<uint8_t>();
+  LinkedList<int> keyboardKeys = LinkedList<int>();
   for (int i = 0; i < arrSize; i++) {  
 
     // Setting click keys
