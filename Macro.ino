@@ -1,43 +1,68 @@
 #include "Key.h"
 
-//uint8_t inputPins[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 14, 15};
-uint8_t inputPins[] = {8, 9, 10, 16};
+static const uint8_t NUM_PINS = 4;
+static const uint8_t NUM_BUTTONS = 12;
+static const uint8_t PINS[NUM_PINS] = {4, 5, 6, 7};
 
-int clickKeys[4][3] = {
-  {'c', 'i', '{'}, 
-  {'c', 'i', '\"'},
-  {'c', 'i', '('},
-  {'d', 'd'}
+Key *keys;
+
+static AceButton b01(1);
+static AceButton b02(2);
+static AceButton b03(3);
+static AceButton b04(4);
+static AceButton b05(5);
+static AceButton b06(6);
+static AceButton b07(7);
+static AceButton b08(8);
+static AceButton b09(9);
+static AceButton b10(10);
+static AceButton b11(11);
+static AceButton b12(12);
+
+static AceButton* const BUTTONS[] = {
+    &b01, &b02, &b03, &b04, &b05, &b06, &b07,
+    &b08, &b09, &b10, &b11, &b12
 };
 
-int longPressKeys[4][3] = {
-  {KEY_LEFT_CTRL, KEY_LEFT_ARROW}, 
-  {KEY_LEFT_CTRL, KEY_RIGHT_ARROW},
-  {KEY_LEFT_CTRL, KEY_RIGHT_GUI, 'q'},
-  {KEY_RIGHT_GUI ,KEY_LEFT_SHIFT, 't'}
-};
+static EncodedButtonConfig buttonConfig(NUM_PINS, PINS, NUM_BUTTONS, BUTTONS);
 
-int arrSize = sizeof(inputPins) / sizeof(inputPins[0]);
 void handleEvent(AceButton*, uint8_t, uint8_t);
 
-Key *buttons;
-String incomingByte;
+int clickKeys[NUM_BUTTONS][4] = {
+  {KEY_ESC, 'c', 'i', '{'}, {KEY_ESC, 'c', 'i', '('}, {KEY_ESC, 'c', 'i', '\"'}, {KEY_ESC, 'c', 'i', '\''},
+  {KEY_ESC, 'd', 'd'}, {KEY_ESC, 'd', '$'}, {KEY_ESC, 'd', '0'}, {KEY_ESC, KEY_LEFT_SHIFT, 'a'},
+  {KEY_LEFT_CTRL, KEY_LEFT_ARROW}, {KEY_LEFT_CTRL, KEY_RIGHT_ARROW},{KEY_LEFT_CTRL, KEY_RIGHT_GUI, 'q'},  {KEY_RIGHT_GUI ,KEY_LEFT_SHIFT, 't'}
+};
+
+int longPressKeys[NUM_BUTTONS][4] = {
+  {KEY_ESC, 'c', 'i', '{'},
+  {KEY_ESC, 'c', 'i', '('},
+  {KEY_ESC, 'c', 'i', '\"'},
+  {KEY_ESC, 'c', 'i', '\''},
+  {KEY_ESC, 'd', 'd'},
+  {KEY_ESC, 'd', '$'},
+  {KEY_ESC, 'd', '0'},
+  {KEY_ESC, KEY_LEFT_SHIFT, 'a'},
+  {KEY_ESC, KEY_LEFT_CTRL, KEY_LEFT_ARROW}, 
+  {KEY_ESC, KEY_LEFT_CTRL, KEY_RIGHT_ARROW},
+  {KEY_ESC, KEY_LEFT_CTRL, KEY_RIGHT_GUI, 'q'},
+  {KEY_ESC, KEY_RIGHT_GUI ,KEY_LEFT_SHIFT, 't'}
+};
 
 void setup() {
+  Serial.begin(115200);
   Keyboard.begin();
   
-  arrSize = sizeof(inputPins) / sizeof(inputPins[0]);
-  buttons = new Key[arrSize];
+  keys = new Key[NUM_BUTTONS];
 
-  for (int i = 0; i < arrSize; i++) {
-    pinMode(inputPins[i], INPUT_PULLUP);
-    ButtonConfig* buttonConfig = buttons[i].setup(inputPins[i]);
-    buttonConfig -> setEventHandler(handleEvent);
+  for (int i = 0; i < NUM_PINS; i++) {
+    pinMode(PINS[i], INPUT_PULLUP);
   }
 
   LinkedList<int> keyboardKeys = LinkedList<int>();
-  for (int i = 0; i < arrSize; i++) {  
-
+  for (int i = 0; i < NUM_BUTTONS; i++) {  
+    keys[i].setup(i);
+    
     // Setting click keys
     int clickKeySize = sizeof(clickKeys[i]) / sizeof(clickKeys[i][0]);
     
@@ -47,7 +72,7 @@ void setup() {
       }
     }
     if (keyboardKeys.size() > 0) {
-      buttons[i].setClickKeys(keyboardKeys);
+      keys[i].setClickKeys(keyboardKeys);
     }
 
     keyboardKeys.clear();
@@ -61,28 +86,22 @@ void setup() {
       }
     }
     if (keyboardKeys.size() > 0) {
-      buttons[i].setLongPressKeys(keyboardKeys);
+      keys[i].setLongPressKeys(keyboardKeys);
     }
 
     keyboardKeys.clear();
   }
+
+  buttonConfig.setEventHandler(handleEvent);
+  buttonConfig.setFeature(ButtonConfig::kFeatureClick);
 }
 
 void loop() {
-  for (int i = 0; i < arrSize; i++) {
-      buttons[i].check();
-  }
+    buttonConfig.checkButtons();
 }
 
 void handleEvent(AceButton* button, uint8_t eventType, uint8_t buttonState) {
-  uint8_t selectedIndex = getIndexForPin(button -> getPin());
-  buttons[selectedIndex].handleEvent(button, eventType, buttonState);
-}
-
-int getIndexForPin(int pinNumber) {
-  for(int i = 0; i < arrSize; i++) {
-    if (inputPins[i] == pinNumber) {
-      return i;
-    }
-  }
+  Serial.println(button -> getPin());
+  uint8_t selectedIndex = button -> getPin();
+  keys[selectedIndex - 1].handleEvent(button, eventType, buttonState);
 }

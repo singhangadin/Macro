@@ -9,7 +9,6 @@ class Key: public IEventHandler {
   private:
   
     uint8_t pin;
-    AceButton acebutton;
     KeyCodes clickKeys, longPressKeys;
 
   public:
@@ -18,8 +17,7 @@ class Key: public IEventHandler {
       longPressKeys = KeyCodes();
     }
   
-    ButtonConfig* setup(uint8_t lPin);
-    void check();
+    void setup(uint8_t lPin);
     int ifasciiMapChar(char ch);
     void setClickKeys(KeyCodes &keyCodes);
     void setLongPressKeys(KeyCodes &keyCodes);
@@ -60,18 +58,6 @@ void Key::handleEvent(AceButton* button, uint8_t eventType, uint8_t buttonState)
   }
 }
 
-ButtonConfig* Key::setup(uint8_t lPin) {
+void Key::setup(uint8_t lPin) {
   pin = lPin;
-  acebutton.init(pin);
-  
-  ButtonConfig* buttonConfig = acebutton.getButtonConfig();
-  buttonConfig->setFeature(ButtonConfig::kFeatureClick);
-  buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
-  buttonConfig->setFeature(ButtonConfig::kFeatureSuppressAfterLongPress);
-
-  return buttonConfig;
-}
-
-void Key::check() {
-  acebutton.check();
 }
